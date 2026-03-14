@@ -13,40 +13,25 @@ class SupabasePaperRepository implements IPaperRepository {
 
   @override
   Future<List<PaperModel>> getPapers(PaperParams params) async {
-    // Step 1: resolve year UUID from the year integer
-    final yearRow = await _client
-        .from('exam_years')
-        .select('id')
-        .eq('exam_id', params.examId)
-        .eq('year', params.year)
-        .maybeSingle();
-
-    if (yearRow == null) return [];
-    final yearId = yearRow['id'] as String;
-
-    // Step 2: fetch papers + join categories for the display name
     final rows = await _client
         .from('papers')
-        .select('*, categories(name)')
+        .select()
         .eq('exam_id', params.examId)
-        .eq('year_id', yearId)
+        .eq('year', params.year)
         .eq('category_id', params.categoryId)
-        .order('sort_order', ascending: true);
+        .order('created_at', ascending: true);
 
     return (rows as List<dynamic>).map((row) {
       final r = row as Map<String, dynamic>;
-      final categoryData = r['categories'] as Map<String, dynamic>?;
-      final fileUrl = r['file_url'] as String?;
-
       return PaperModel(
         id:              r['id'] as String,
         title:           r['title'] as String,
         examId:          r['exam_id'] as String,
-        year:            params.year,
+        year:            r['year'] as int,
         categoryId:      r['category_id'] as String,
-        categoryName:    categoryData?['name'] as String? ?? '',
-        pdfUrl:          fileUrl,
-        downloadUrl:     fileUrl,
+        categoryName:    r['category_name'] as String? ?? '',
+        pdfUrl:          r['pdf_url'] as String?,
+        downloadUrl:     r['download_url'] as String?,
         fileSizeMb:      (r['file_size_mb'] as num?)?.toDouble(),
         language:        r['language'] as String?,
         totalQuestions:  r['total_questions'] as int?,
