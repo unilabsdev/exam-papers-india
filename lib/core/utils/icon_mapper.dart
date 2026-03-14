@@ -14,6 +14,10 @@ class IconMapper {
     'shield':                   Icons.shield_rounded,
     'star':                     Icons.star_rounded,
     'engineering':              Icons.engineering_rounded,
+    'security':                 Icons.security_rounded,
+    'local_hospital':           Icons.local_hospital_rounded,
+    'analytics':                Icons.analytics_rounded,
+    'gavel':                    Icons.gavel_rounded,
 
     // Category icons
     'assignment':               Icons.assignment_rounded,
