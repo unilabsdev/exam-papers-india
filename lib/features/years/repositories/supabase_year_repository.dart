@@ -22,12 +22,30 @@ class SupabaseYearRepository implements IYearRepository {
         .eq('exam_id', examId)
         .order('year', ascending: false);
 
-    return (rows as List<dynamic>).map((row) {
+    final yearRows = rows as List<dynamic>;
+    if (yearRows.isEmpty) return [];
+
+    // Live paper count per year from papers table
+    final years = yearRows.map((r) => (r as Map<String, dynamic>)['year'] as int).toList();
+    final paperRows = await _client
+        .from('papers')
+        .select('year')
+        .eq('exam_id', examId)
+        .inFilter('year', years);
+
+    final countMap = <int, int>{};
+    for (final row in paperRows as List<dynamic>) {
+      final y = (row as Map<String, dynamic>)['year'] as int;
+      countMap[y] = (countMap[y] ?? 0) + 1;
+    }
+
+    return yearRows.map((row) {
       final r = row as Map<String, dynamic>;
+      final year = r['year'] as int;
       return YearModel(
-        year:       r['year'] as int,
+        year:       year,
         examId:     r['exam_id'] as String,
-        paperCount: r['paper_count'] as int? ?? 0,
+        paperCount: countMap[year] ?? 0,
         isLatest:   r['is_latest'] as bool? ?? false,
       );
     }).toList();

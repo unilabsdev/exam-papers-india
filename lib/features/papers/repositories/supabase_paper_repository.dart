@@ -25,7 +25,7 @@ class SupabasePaperRepository implements IPaperRepository {
       final r = row as Map<String, dynamic>;
       return PaperModel(
         id:              r['id'] as String,
-        title:           r['title'] as String,
+        title:           (r['title'] as String).replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim(),
         examId:          r['exam_id'] as String,
         year:            r['year'] as int,
         categoryId:      r['category_id'] as String,

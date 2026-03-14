@@ -7,6 +7,7 @@ import '../../../core/widgets/app_empty_widget.dart';
 import '../../../core/widgets/app_error_widget.dart';
 import '../../../core/widgets/app_loading_widget.dart';
 import '../../bookmarks/providers/bookmark_provider.dart';
+import '../../viewer/providers/pdf_cache_provider.dart';
 import '../providers/paper_provider.dart';
 import '../repositories/paper_repository.dart';
 import '../widgets/paper_tile.dart';
@@ -70,6 +71,13 @@ class PapersScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(papersProvider(params)),
         ),
         data: (papers) {
+          // Prefetch PDFs in the background so they're cached before user taps Open
+          for (final p in papers) {
+            if (p.pdfUrl != null && p.pdfUrl!.isNotEmpty) {
+              ref.read(pdfCacheProvider(p.pdfUrl!).future);
+            }
+          }
+
           if (papers.isEmpty) {
             return const AppEmptyWidget(
               title: 'No Papers Found',

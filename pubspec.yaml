@@ -25,6 +25,10 @@ dependencies:
   # URL launching (for PDF open/download fallback)
   url_launcher: ^6.2.5
 
+  # PDF caching
+  http: ^1.2.0
+  path_provider: ^2.1.0
+
   # Icons
   cupertino_icons: ^1.0.6
 

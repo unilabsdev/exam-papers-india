@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../providers/pdf_cache_provider.dart';
 
 /// Full-featured PDF Viewer backed by syncfusion_flutter_pdfviewer.
 ///
@@ -11,7 +15,7 @@ import '../../../core/theme/app_colors.dart';
 ///   • Jump-to-page dialog
 ///   • In-document text search with highlight cycling
 ///   • Download & Share action stubs (wire url_launcher / share_plus)
-class PDFViewerScreen extends StatefulWidget {
+class PDFViewerScreen extends ConsumerStatefulWidget {
   final String pdfUrl;
   final String title;
 
@@ -22,10 +26,10 @@ class PDFViewerScreen extends StatefulWidget {
   });
 
   @override
-  State<PDFViewerScreen> createState() => _PDFViewerScreenState();
+  ConsumerState<PDFViewerScreen> createState() => _PDFViewerScreenState();
 }
 
-class _PDFViewerScreenState extends State<PDFViewerScreen> {
+class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   final PdfViewerController _controller = PdfViewerController();
   final TextEditingController _searchCtrl = TextEditingController();
 
@@ -164,21 +168,41 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
 
     return Stack(
       children: [
-        // PDF Viewer
+        // PDF Viewer — use local cached file if ready, else stream from network
         if (!_hasError)
           Padding(
             padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
-            child: SfPdfViewer.network(
-              widget.pdfUrl,
-              controller: _controller,
-              enableDoubleTapZooming: true,
-              enableTextSelection: true,
-              pageLayoutMode: PdfPageLayoutMode.continuous,
-              scrollDirection: PdfScrollDirection.vertical,
-              onDocumentLoaded: _onLoaded,
-              onDocumentLoadFailed: _onLoadFailed,
-              onPageChanged: _onPageChanged,
-            ),
+            child: Builder(builder: (context) {
+              final cacheState = ref.watch(pdfCacheProvider(widget.pdfUrl));
+              final localPath = cacheState.valueOrNull;
+              final useFile = localPath != null &&
+                  localPath.isNotEmpty &&
+                  localPath != widget.pdfUrl;
+              if (useFile) {
+                return SfPdfViewer.file(
+                  File(localPath),
+                  controller: _controller,
+                  enableDoubleTapZooming: true,
+                  enableTextSelection: true,
+                  pageLayoutMode: PdfPageLayoutMode.continuous,
+                  scrollDirection: PdfScrollDirection.vertical,
+                  onDocumentLoaded: _onLoaded,
+                  onDocumentLoadFailed: _onLoadFailed,
+                  onPageChanged: _onPageChanged,
+                );
+              }
+              return SfPdfViewer.network(
+                widget.pdfUrl,
+                controller: _controller,
+                enableDoubleTapZooming: true,
+                enableTextSelection: true,
+                pageLayoutMode: PdfPageLayoutMode.continuous,
+                scrollDirection: PdfScrollDirection.vertical,
+                onDocumentLoaded: _onLoaded,
+                onDocumentLoadFailed: _onLoadFailed,
+                onPageChanged: _onPageChanged,
+              );
+            }),
           ),
 
         // Search bar
