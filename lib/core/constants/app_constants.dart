@@ -32,6 +32,6 @@ class AppConstants {
   // ── Grid ─────────────────────────────────────────────────────────────────────
   static const int examGridCrossAxisCount    = 2;
   static const int categoryGridCrossAxisCount = 2;
-  static const double examCardAspectRatio    = 0.95;
+  static const double examCardAspectRatio    = 0.75;
   static const double categoryCardAspectRatio = 0.90;
 }

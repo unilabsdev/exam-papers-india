@@ -30,29 +30,42 @@ class ExamListScreen extends ConsumerWidget {
           // ── Large collapsing app bar ──────────────────────────────────
           SliverAppBar.large(
             pinned: true,
-            expandedHeight: 130,
+            expandedHeight: 120,
             backgroundColor: cs.surface,
             surfaceTintColor: cs.surface,
             shadowColor: cs.outlineVariant,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding:
-                  const EdgeInsets.only(left: 20, bottom: 14, right: 120),
-              title: Text(
-                'Exam Papers India',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: cs.onSurface,
-                ),
+            // Shown only when collapsed (clear of hamburger automatically)
+            title: Text(
+              'Exam Papers India',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: cs.onSurface,
               ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 color: cs.surface,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                 alignment: Alignment.bottomLeft,
-                padding: const EdgeInsets.only(left: 20, bottom: 56),
-                child: Text(
-                  'Previous Year Question Papers',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Previous Year Question Papers',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Exam Papers India',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -158,7 +171,7 @@ class ExamListScreen extends ConsumerWidget {
                         onTap: () => context.pushNamed(
                           AppRoutes.years,
                           pathParameters: {'examId': exam.id},
-                          queryParameters: {'examName': exam.name},
+                          queryParameters: {'examName': exam.shortName},
                         ),
                       );
                     },
