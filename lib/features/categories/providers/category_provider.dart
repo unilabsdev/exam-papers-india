@@ -2,14 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/category_model.dart';
 import '../repositories/category_repository.dart';
-// import '../repositories/supabase_category_repository.dart'; // uncomment for Supabase
-// import '../../../services/supabase_service.dart';           // uncomment for Supabase
+import '../repositories/supabase_category_repository.dart';
+import '../../../services/supabase_service.dart';
 
-/// Repository provider — using mock data for testing.
 final categoryRepositoryProvider = Provider<ICategoryRepository>((ref) {
-  return const CategoryRepository(); // mock
-  // final client = ref.watch(supabaseClientProvider);
-  // return SupabaseCategoryRepository(client);
+  final client = ref.watch(supabaseClientProvider);
+  return SupabaseCategoryRepository(client);
 });
 
 /// Family provider keyed by [examId] with in-memory caching.
