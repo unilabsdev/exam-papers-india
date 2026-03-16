@@ -20,25 +20,30 @@ class SupabaseCategoryRepository implements ICategoryRepository {
     // Step 1: find which categories have papers for this exam+year, with live count
     final paperRows = await _client
         .from('papers')
-        .select('category_id, category_name')
+        .select('category_id, category_name, pdf_url')
         .eq('exam_id', examId)
         .eq('year', year);
 
     final papers = paperRows as List<dynamic>;
     if (papers.isEmpty) return [];
 
-    // Build category_id → count map
+    // All category IDs to show (including notification)
+    final categoryIds = <String>{};
+    // Count only papers that have an actual file available
     final countMap = <String, int>{};
     for (final row in papers) {
       final id = row['category_id'] as String;
-      countMap[id] = (countMap[id] ?? 0) + 1;
+      categoryIds.add(id);
+      if (row['pdf_url'] != null) {
+        countMap[id] = (countMap[id] ?? 0) + 1;
+      }
     }
 
     // Step 2: fetch full category details for only those IDs
     final rows = await _client
         .from(_table)
         .select()
-        .inFilter('id', countMap.keys.toList())
+        .inFilter('id', categoryIds.toList())
         .order('name', ascending: true);
 
     return (rows as List<dynamic>).map((row) {

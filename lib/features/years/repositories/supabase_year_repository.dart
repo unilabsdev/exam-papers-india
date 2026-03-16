@@ -31,7 +31,9 @@ class SupabaseYearRepository implements IYearRepository {
         .from('papers')
         .select('year')
         .eq('exam_id', examId)
-        .inFilter('year', years);
+        .inFilter('year', years)
+        .not('category_id', 'ilike', '%notification%')
+        .not('pdf_url', 'is', null);
 
     final countMap = <int, int>{};
     for (final row in paperRows as List<dynamic>) {

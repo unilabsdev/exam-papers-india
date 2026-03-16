@@ -42,6 +42,13 @@ class IconMapper {
     'bolt':                     Icons.bolt_rounded,
     'developer_board':          Icons.developer_board_rounded,
 
+    // Additional category icons
+    'notifications':            Icons.notifications_rounded,
+    'school':                   Icons.school_rounded,
+    'park':                     Icons.park_rounded,
+    'library_books':            Icons.library_books_rounded,
+    'medical_services':         Icons.medical_services_rounded,
+
     // Generic fallbacks
     'book':                     Icons.book_rounded,
     'description':              Icons.description_rounded,

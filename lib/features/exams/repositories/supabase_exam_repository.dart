@@ -24,17 +24,33 @@ class SupabaseExamRepository implements IExamRepository {
         .select()
         .order('name', ascending: true);
 
-    return (rows as List<dynamic>).map((row) {
+    final examRows = rows as List<dynamic>;
+    if (examRows.isEmpty) return [];
+
+    // Live paper count per exam from papers table
+    final paperRows = await _client
+        .from('papers')
+        .select('exam_id')
+        .not('category_id', 'ilike', '%notification%')
+        .not('pdf_url', 'is', null);
+    final countMap = <String, int>{};
+    for (final row in paperRows as List<dynamic>) {
+      final id = (row as Map<String, dynamic>)['exam_id'] as String;
+      countMap[id] = (countMap[id] ?? 0) + 1;
+    }
+
+    return examRows.map((row) {
       final r = row as Map<String, dynamic>;
+      final id = r['id'] as String;
       return ExamModel(
-        id:          r['id'] as String,
+        id:          id,
         name:        r['name'] as String,
         shortName:   r['short_name'] as String,
         description: r['description'] as String? ?? '',
         conductedBy: r['conducted_by'] as String? ?? 'UPSC',
         icon:        IconMapper.get(r['icon_name'] as String?),
         color:       Color(r['color_value'] as int? ?? 0xFF2563EB),
-        totalPapers: r['total_papers'] as int? ?? 0,
+        totalPapers: countMap[id] ?? 0,
       );
     }).toList();
   }

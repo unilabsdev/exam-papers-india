@@ -36,9 +36,10 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   // v27 search API: PdfViewerController.searchText() returns PdfTextSearchResult
   PdfTextSearchResult _searchResult = PdfTextSearchResult();
 
-  bool _isLoading  = true;
-  bool _hasError   = false;
-  String _errorMsg = '';
+  bool _isLoading        = true;
+  bool _hasError         = false;
+  bool _isFileUnavailable = false;
+  String _errorMsg       = '';
 
   int _currentPage = 1;
   int _totalPages  = 0;
@@ -64,6 +65,11 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
         _isLoading = false;
         _hasError  = true;
         _errorMsg  = d.description;
+        // Detect HTTP 400/404 — file not uploaded to storage yet
+        _isFileUnavailable = _errorMsg.contains('400') ||
+            _errorMsg.contains('404') ||
+            _errorMsg.contains('Bad Request') ||
+            _errorMsg.contains('Not Found');
       });
 
   void _onPageChanged(PdfPageChangedDetails d) =>
@@ -166,6 +172,13 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   Widget _body() {
     if (widget.pdfUrl.isEmpty) return const _InvalidUrlView();
 
+    final cacheState = ref.watch(pdfCacheProvider(widget.pdfUrl));
+
+    // File not uploaded to storage — show unavailable screen immediately
+    if (cacheState.hasError) {
+      return _FileUnavailableView(onBack: () => Navigator.of(context).pop());
+    }
+
     return Stack(
       children: [
         // PDF Viewer — use local cached file if ready, else stream from network
@@ -173,7 +186,6 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
           Padding(
             padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
             child: Builder(builder: (context) {
-              final cacheState = ref.watch(pdfCacheProvider(widget.pdfUrl));
               final localPath = cacheState.valueOrNull;
               final useFile = localPath != null &&
                   localPath.isNotEmpty &&
@@ -226,7 +238,9 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
 
         // Error view
         if (_hasError)
-          _ErrorView(message: _errorMsg, onRetry: _retry),
+          _isFileUnavailable
+              ? _FileUnavailableView(onBack: () => Navigator.of(context).pop())
+              : _ErrorView(message: _errorMsg, onRetry: _retry),
       ],
     );
   }
@@ -402,18 +416,84 @@ class _ErrorView extends StatelessWidget {
       );
 }
 
+class _FileUnavailableView extends StatelessWidget {
+  final VoidCallback onBack;
+  const _FileUnavailableView({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 64, color: Colors.white30),
+              const SizedBox(height: 20),
+              const Text(
+                'File Not Available',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This paper has not been uploaded yet.\nPlease check back later.',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              ElevatedButton.icon(
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                label: const Text('Go Back'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A3A3C),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
 class _InvalidUrlView extends StatelessWidget {
   const _InvalidUrlView();
   @override
-  Widget build(BuildContext context) => const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.link_off_rounded, size: 48, color: Colors.white30),
-            SizedBox(height: 12),
-            Text('No PDF URL provided',
-                style: TextStyle(color: Colors.white54, fontSize: 15)),
-          ],
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 64, color: Colors.white30),
+              const SizedBox(height: 20),
+              const Text(
+                'File Not Available',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This paper has not been uploaded yet.\nPlease check back later.',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                label: const Text('Go Back'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A3A3C),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       );
 }

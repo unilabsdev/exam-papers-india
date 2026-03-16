@@ -73,7 +73,7 @@ class PapersScreen extends ConsumerWidget {
           // Prefetch PDFs in the background so they're cached before user taps Open
           for (final p in papers) {
             if (p.pdfUrl != null && p.pdfUrl!.isNotEmpty) {
-              ref.read(pdfCacheProvider(p.pdfUrl!).future);
+              ref.read(pdfCacheProvider(p.pdfUrl!).future).ignore();
             }
           }
 
@@ -91,26 +91,34 @@ class PapersScreen extends ConsumerWidget {
             itemCount: papers.length,
             itemBuilder: (context, index) {
               final paper = papers[index];
+              final hasFile =
+                  paper.pdfUrl != null && paper.pdfUrl!.isNotEmpty;
               return PaperTile(
                 paper: paper,
                 isBookmarked: bookmarkedIds.contains(paper.id),
-                onBookmarkToggle: () =>
-                    bookmarkNotifier.toggle(paper),
-                onOpen: () => context.pushNamed(
-                  AppRoutes.viewer,
-                  queryParameters: {
-                    'url':   paper.pdfUrl ?? '',
-                    'title': paper.title,
-                  },
-                ),
-                onDownload: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Downloading "${paper.title}"…'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
+                isFileAvailable: hasFile,
+                onBookmarkToggle: hasFile
+                    ? () => bookmarkNotifier.toggle(paper)
+                    : null,
+                onOpen: hasFile
+                    ? () => context.pushNamed(
+                          AppRoutes.viewer,
+                          queryParameters: {
+                            'url':   paper.pdfUrl!,
+                            'title': paper.title,
+                          },
+                        )
+                    : null,
+                onDownload: hasFile
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Downloading "${paper.title}"…'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    : null,
               );
             },
           );

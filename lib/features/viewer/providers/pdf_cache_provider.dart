@@ -21,5 +21,9 @@ final pdfCacheProvider =
     await file.writeAsBytes(response.bodyBytes);
     return file.path;
   }
-  return url; // fall back to network URL on error
+  // File not uploaded to storage yet — signal as unavailable
+  if (response.statusCode == 400 || response.statusCode == 404) {
+    throw Exception('FILE_NOT_AVAILABLE');
+  }
+  return url;
 });

@@ -97,22 +97,23 @@ class CategoryCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ── Paper count pill ────────────────────────────────────────
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${category.paperCount} papers',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+            // ── Paper count pill (hidden for notification categories) ────
+            if (!category.id.contains('notification'))
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${category.paperCount} papers',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

@@ -6,6 +6,7 @@ import '../../../models/paper_model.dart';
 class PaperTile extends StatelessWidget {
   final PaperModel paper;
   final bool isBookmarked;
+  final bool isFileAvailable;
   final VoidCallback? onOpen;
   final VoidCallback? onDownload;
   final VoidCallback? onBookmarkToggle;
@@ -14,6 +15,7 @@ class PaperTile extends StatelessWidget {
     super.key,
     required this.paper,
     this.isBookmarked = false,
+    this.isFileAvailable = true,
     this.onOpen,
     this.onDownload,
     this.onBookmarkToggle,
@@ -84,12 +86,14 @@ class PaperTile extends StatelessWidget {
 
                 // Bookmark toggle button
                 IconButton(
-                  onPressed: onBookmarkToggle,
+                  onPressed: isFileAvailable ? onBookmarkToggle : null,
                   icon: Icon(
                     isBookmarked
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_border_rounded,
-                    color: isBookmarked ? cs.primary : cs.onSurfaceVariant,
+                    color: isFileAvailable
+                        ? (isBookmarked ? cs.primary : cs.onSurfaceVariant)
+                        : cs.onSurface.withValues(alpha: 0.3),
                   ),
                   tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark',
                   visualDensity: VisualDensity.compact,
@@ -105,37 +109,46 @@ class PaperTile extends StatelessWidget {
             const SizedBox(height: 12),
 
             // ── Metadata chips ──────────────────────────────────────────
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                if (paper.totalQuestions != null)
-                  _Chip(
-                    icon: Icons.help_outline_rounded,
-                    label: '${paper.totalQuestions} Qs',
-                  ),
-                if (paper.totalMarks != null)
-                  _Chip(
-                    icon: Icons.stars_rounded,
-                    label: '${paper.totalMarks} Marks',
-                  ),
-                if (paper.durationMinutes != null)
-                  _Chip(
-                    icon: Icons.timer_outlined,
-                    label: '${paper.durationMinutes} Min',
-                  ),
-                if (paper.fileSizeMb != null)
-                  _Chip(
-                    icon: Icons.storage_rounded,
-                    label: '${paper.fileSizeMb!.toStringAsFixed(1)} MB',
-                  ),
-                if (paper.language != null)
-                  _Chip(
-                    icon: Icons.language_rounded,
-                    label: paper.language!,
-                  ),
-              ],
-            ),
+            if (!isFileAvailable)
+              _Chip(
+                icon: Icons.cloud_off_rounded,
+                label: 'File not available',
+                color: cs.error.withValues(alpha: 0.12),
+                iconColor: cs.error,
+                labelColor: cs.error,
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  if (paper.totalQuestions != null)
+                    _Chip(
+                      icon: Icons.help_outline_rounded,
+                      label: '${paper.totalQuestions} Qs',
+                    ),
+                  if (paper.totalMarks != null)
+                    _Chip(
+                      icon: Icons.stars_rounded,
+                      label: '${paper.totalMarks} Marks',
+                    ),
+                  if (paper.durationMinutes != null)
+                    _Chip(
+                      icon: Icons.timer_outlined,
+                      label: '${paper.durationMinutes} Min',
+                    ),
+                  if (paper.fileSizeMb != null)
+                    _Chip(
+                      icon: Icons.storage_rounded,
+                      label: '${paper.fileSizeMb!.toStringAsFixed(1)} MB',
+                    ),
+                  if (paper.language != null)
+                    _Chip(
+                      icon: Icons.language_rounded,
+                      label: paper.language!,
+                    ),
+                ],
+              ),
 
             const SizedBox(height: 14),
 
@@ -180,8 +193,17 @@ class PaperTile extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color? color;
+  final Color? iconColor;
+  final Color? labelColor;
 
-  const _Chip({required this.icon, required this.label});
+  const _Chip({
+    required this.icon,
+    required this.label,
+    this.color,
+    this.iconColor,
+    this.labelColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -189,18 +211,18 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
+        color: color ?? cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: cs.onSurfaceVariant),
+          Icon(icon, size: 12, color: iconColor ?? cs.onSurfaceVariant),
           const SizedBox(width: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
+                  color: labelColor ?? cs.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
           ),
