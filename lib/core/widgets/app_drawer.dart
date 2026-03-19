@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/theme_provider.dart';
 
@@ -74,7 +75,10 @@ class AppDrawer extends ConsumerWidget {
               label: 'Privacy Policy',
               onTap: () {
                 Navigator.of(context).pop();
-                context.push('/privacy');
+                launchUrl(
+                  Uri.parse('https://amit-github-new.github.io/exam-papers-privacy-policy/'),
+                  mode: LaunchMode.externalApplication,
+                );
               },
             ),
 

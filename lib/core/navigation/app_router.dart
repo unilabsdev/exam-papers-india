@@ -9,7 +9,6 @@ import '../../features/categories/screens/category_screen.dart';
 import '../../features/papers/screens/papers_screen.dart';
 import '../../features/viewer/screens/pdf_viewer_screen.dart';
 import '../../features/downloads/screens/downloads_screen.dart';
-import '../../features/privacy/screens/privacy_policy_screen.dart';
 
 // Route name constants — use these instead of raw strings.
 class AppRoutes {
@@ -21,7 +20,6 @@ class AppRoutes {
   static const String papers     = 'papers';
   static const String viewer     = 'viewer';
   static const String downloads  = 'downloads';
-  static const String privacy    = 'privacy';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -100,12 +98,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DownloadsScreen(),
       ),
 
-      // ── Privacy Policy ────────────────────────────────────────────────
-      GoRoute(
-        path: '/privacy',
-        name: AppRoutes.privacy,
-        builder: (context, state) => const PrivacyPolicyScreen(),
-      ),
     ],
 
     // ── 404 fallback ─────────────────────────────────────────────────────
