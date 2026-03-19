@@ -13,11 +13,12 @@ class YearTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs    = theme.colorScheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Material(
-        color: AppColors.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           onTap: onTap,
@@ -25,10 +26,9 @@ class YearTile extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: cs.outlineVariant),
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
                 // ── Year badge ──────────────────────────────────────────
@@ -37,8 +37,8 @@ class YearTile extends StatelessWidget {
                   height: 52,
                   decoration: BoxDecoration(
                     color: year.isLatest
-                        ? AppColors.primaryContainer
-                        : AppColors.surfaceVariant,
+                        ? cs.primaryContainer
+                        : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
@@ -46,8 +46,8 @@ class YearTile extends StatelessWidget {
                     year.year.toString().substring(2), // "25" from 2025
                     style: theme.textTheme.headlineSmall?.copyWith(
                       color: year.isLatest
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
+                          ? cs.primary
+                          : cs.onSurfaceVariant,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -66,6 +66,7 @@ class YearTile extends StatelessWidget {
                             year.year.toString(),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
+                              color: cs.onSurface,
                             ),
                           ),
                           if (year.isLatest) ...[
@@ -81,17 +82,19 @@ class YearTile extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         '${year.paperCount} papers available',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
                 // ── Arrow ────────────────────────────────────────────────
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: AppColors.textTertiary,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ],
             ),

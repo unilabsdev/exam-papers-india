@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../models/paper_model.dart';
+import '../../downloads/providers/download_provider.dart';
 import '../providers/pdf_cache_provider.dart';
 
 /// Full-featured PDF Viewer backed by syncfusion_flutter_pdfviewer.
@@ -18,11 +21,25 @@ import '../providers/pdf_cache_provider.dart';
 class PDFViewerScreen extends ConsumerStatefulWidget {
   final String pdfUrl;
   final String title;
+  /// If non-null and non-empty, open this local file directly (offline read).
+  final String? localPath;
+  // Optional paper metadata — enables Download button in viewer
+  final String? paperId;
+  final String? examId;
+  final int? year;
+  final String? categoryId;
+  final String? categoryName;
 
   const PDFViewerScreen({
     super.key,
     required this.pdfUrl,
     required this.title,
+    this.localPath,
+    this.paperId,
+    this.examId,
+    this.year,
+    this.categoryId,
+    this.categoryName,
   });
 
   @override
@@ -93,6 +110,30 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
         _hasError  = false;
       });
 
+  void _share() {
+    final url = widget.pdfUrl;
+    if (url.isEmpty) return;
+    Share.share('${widget.title}\n$url', subject: widget.title);
+  }
+
+  void _download() {
+    final pid = widget.paperId;
+    if (pid == null || widget.pdfUrl.isEmpty) return;
+    final paper = PaperModel(
+      id:           pid,
+      title:        widget.title,
+      pdfUrl:       widget.pdfUrl,
+      examId:       widget.examId ?? '',
+      year:         widget.year ?? 0,
+      categoryId:   widget.categoryId ?? '',
+      categoryName: widget.categoryName ?? '',
+    );
+    ref.read(downloadProvider.notifier).download(paper);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Download started…')),
+    );
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -148,18 +189,32 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
             ),
             tooltip: 'Search in PDF',
           ),
+          // Download — only shown when not already downloaded/downloading
+          if (widget.localPath == null || widget.localPath!.isEmpty)
+            Builder(builder: (ctx) {
+              final dlStates = ref.watch(downloadProvider);
+              final dlState  = widget.paperId != null
+                  ? (dlStates[widget.paperId] ?? const DownloadState())
+                  : const DownloadState();
+              final isDownloaded = dlState.status == DownloadStatus.downloaded;
+              final isDownloading = dlState.status == DownloadStatus.downloading;
+              return IconButton(
+                onPressed: (widget.paperId == null || isDownloaded || isDownloading)
+                    ? null
+                    : _download,
+                icon: Icon(
+                  isDownloaded
+                      ? Icons.download_done_rounded
+                      : Icons.download_rounded,
+                  color: isDownloaded
+                      ? Colors.greenAccent
+                      : (widget.paperId != null ? Colors.white70 : Colors.white30),
+                ),
+                tooltip: isDownloaded ? 'Downloaded' : 'Download',
+              );
+            }),
           IconButton(
-            onPressed: widget.pdfUrl.isEmpty
-                ? null
-                : () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Opening download…')),
-                    ),
-            icon: const Icon(Icons.download_rounded, color: Colors.white70),
-            tooltip: 'Download',
-          ),
-          IconButton(
-            onPressed: widget.pdfUrl.isEmpty ? null : () {},
+            onPressed: widget.pdfUrl.isEmpty ? null : _share,
             icon: const Icon(Icons.share_rounded, color: Colors.white70),
             tooltip: 'Share',
           ),
@@ -170,6 +225,44 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   // ── Body ───────────────────────────────────────────────────────────────────
 
   Widget _body() {
+    // ── Offline: open local file directly, skip cache provider ────────────
+    final localPath = widget.localPath;
+    if (localPath != null && localPath.isNotEmpty) {
+      return Stack(
+        children: [
+          if (!_hasError)
+            Padding(
+              padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
+              child: SfPdfViewer.file(
+                File(localPath),
+                controller: _controller,
+                enableDoubleTapZooming: true,
+                enableTextSelection: true,
+                pageLayoutMode: PdfPageLayoutMode.continuous,
+                scrollDirection: PdfScrollDirection.vertical,
+                onDocumentLoaded: _onLoaded,
+                onDocumentLoadFailed: _onLoadFailed,
+                onPageChanged: _onPageChanged,
+              ),
+            ),
+          if (_isSearchOpen && !_hasError)
+            Positioned(
+              top: 0, left: 0, right: 0,
+              child: _SearchBar(
+                controller: _searchCtrl,
+                onSearch: _runSearch,
+                onNext: () => _searchResult.nextInstance(),
+                onPrev: () => _searchResult.previousInstance(),
+                onClear: () { _searchResult.clear(); _searchCtrl.clear(); },
+              ),
+            ),
+          if (_isLoading && !_hasError) const _LoadingOverlay(),
+          if (_hasError) _ErrorView(message: _errorMsg, onRetry: _retry),
+        ],
+      );
+    }
+
+    // ── Online: NULL url → File Not Available ──────────────────────────────
     if (widget.pdfUrl.isEmpty) return const _InvalidUrlView();
 
     final cacheState = ref.watch(pdfCacheProvider(widget.pdfUrl));
@@ -186,13 +279,13 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
           Padding(
             padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
             child: Builder(builder: (context) {
-              final localPath = cacheState.valueOrNull;
-              final useFile = localPath != null &&
-                  localPath.isNotEmpty &&
-                  localPath != widget.pdfUrl;
+              final cachedPath = cacheState.valueOrNull;
+              final useFile = cachedPath != null &&
+                  cachedPath.isNotEmpty &&
+                  cachedPath != widget.pdfUrl;
               if (useFile) {
                 return SfPdfViewer.file(
-                  File(localPath),
+                  File(cachedPath),
                   controller: _controller,
                   enableDoubleTapZooming: true,
                   enableTextSelection: true,

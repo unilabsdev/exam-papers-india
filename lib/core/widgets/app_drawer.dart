@@ -61,11 +61,11 @@ class AppDrawer extends ConsumerWidget {
 
             // ── Menu items ────────────────────────────────────────────────
             _DrawerItem(
-              icon: Icons.bookmark_rounded,
-              label: 'Bookmarks',
+              icon: Icons.download_done_rounded,
+              label: 'Downloads',
               onTap: () {
                 Navigator.of(context).pop();
-                context.push('/bookmarks');
+                context.push('/downloads');
               },
             ),
 

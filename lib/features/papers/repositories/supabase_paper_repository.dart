@@ -7,6 +7,9 @@ import 'paper_repository.dart';
 ///
 /// Schema: papers table uses year_id (UUID FK → exam_years) and file_url.
 /// We resolve year_id from the year integer, then join categories for name.
+const _storageBase =
+    'https://hsvgjgnfrtufrfswwoeu.supabase.co/storage/v1/object/public/papers/';
+
 class SupabasePaperRepository implements IPaperRepository {
   final SupabaseClient _client;
   const SupabasePaperRepository(this._client);
@@ -30,7 +33,7 @@ class SupabasePaperRepository implements IPaperRepository {
         year:            r['year'] as int,
         categoryId:      r['category_id'] as String,
         categoryName:    r['category_name'] as String? ?? '',
-        pdfUrl:          r['pdf_url'] as String?,
+        pdfUrl:          (r['pdf_url'] as String?) ?? '$_storageBase${r['id']}.pdf',
         downloadUrl:     r['download_url'] as String?,
         fileSizeMb:      (r['file_size_mb'] as num?)?.toDouble(),
         language:        r['language'] as String?,

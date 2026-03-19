@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../models/category_model.dart';
 
 /// Grid card for a single paper category.
@@ -17,14 +16,15 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs    = theme.colorScheme;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: cs.outlineVariant),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -45,22 +45,22 @@ class CategoryCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: cs.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     category.icon,
-                    color: AppColors.primary,
+                    color: cs.primary,
                     size: 22,
                   ),
                 ),
                 const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
                   child: Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 12,
-                    color: AppColors.textTertiary,
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -73,7 +73,7 @@ class CategoryCard extends StatelessWidget {
               category.name,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: cs.onSurface,
                 height: 1.3,
               ),
               maxLines: 2,
@@ -87,7 +87,7 @@ class CategoryCard extends StatelessWidget {
               child: Text(
                 category.description,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: cs.onSurfaceVariant,
                   height: 1.4,
                 ),
                 maxLines: 2,
@@ -100,16 +100,16 @@ class CategoryCard extends StatelessWidget {
             // ── Paper count pill (hidden for notification categories) ────
             if (!category.id.contains('notification'))
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${category.paperCount} papers',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: cs.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

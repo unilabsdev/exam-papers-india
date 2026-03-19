@@ -6,9 +6,11 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/navigation/app_router.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../../../core/widgets/app_empty_widget.dart';
 import '../../../core/widgets/app_error_widget.dart';
 import '../../../core/widgets/app_loading_widget.dart';
+import '../../../core/providers/realtime_provider.dart';
 import '../providers/exam_provider.dart';
 import '../widgets/exam_card.dart';
 
@@ -19,10 +21,17 @@ class ExamListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final examsAsync = ref.watch(examsProvider);
     final theme = Theme.of(context);
+
+    // When a new paper is inserted via the edge function, invalidate all
+    // cached papers/years/categories so the user sees it immediately.
+    ref.listen(newPaperStreamProvider, (_, __) {
+      ref.invalidate(examsProvider);
+    });
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    return OfflineBanner(
+      child: Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       drawer: const AppDrawer(),
       body: CustomScrollView(
@@ -88,9 +97,9 @@ class ExamListScreen extends ConsumerWidget {
                 tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
               ),
               IconButton(
-                onPressed: () => context.push('/bookmarks'),
-                icon: const Icon(Icons.bookmark_border_rounded),
-                tooltip: 'Bookmarks',
+                onPressed: () => context.push('/downloads'),
+                icon: const Icon(Icons.download_done_rounded),
+                tooltip: 'Downloads',
               ),
               const SizedBox(width: 4),
             ],
@@ -183,6 +192,6 @@ class ExamListScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }

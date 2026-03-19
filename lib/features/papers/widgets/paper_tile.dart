@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 
+import '../../../features/downloads/providers/download_provider.dart';
 import '../../../models/paper_model.dart';
 
-/// Card for a single question paper — shows metadata chips + bookmark + Open/Download CTA.
+/// Card for a single question paper.
+/// Shows three states based on [downloadState]:
+///   • notDownloaded  → "Open Online" + "Download" buttons
+///   • downloading    → animated progress bar with percentage
+///   • downloaded     → "Read" button + delete icon
 class PaperTile extends StatelessWidget {
   final PaperModel paper;
-  final bool isBookmarked;
   final bool isFileAvailable;
+  final DownloadState downloadState;
   final VoidCallback? onOpen;
   final VoidCallback? onDownload;
-  final VoidCallback? onBookmarkToggle;
+  final VoidCallback? onRead;
+  final VoidCallback? onDelete;
 
   const PaperTile({
     super.key,
     required this.paper,
-    this.isBookmarked = false,
+    required this.downloadState,
     this.isFileAvailable = true,
     this.onOpen,
     this.onDownload,
-    this.onBookmarkToggle,
+    this.onRead,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final theme      = Theme.of(context);
+    final cs         = theme.colorScheme;
+    final isDownloaded = downloadState.status == DownloadStatus.downloaded;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -38,7 +46,7 @@ class PaperTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header row ─────────────────────────────────────────────
+            // ── Header row ────────────────────────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -47,12 +55,16 @@ class PaperTile extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: cs.primaryContainer,
+                    color: isDownloaded
+                        ? cs.primaryContainer
+                        : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.picture_as_pdf_rounded,
-                    color: cs.primary,
+                    isDownloaded
+                        ? Icons.check_circle_rounded
+                        : Icons.picture_as_pdf_rounded,
+                    color: isDownloaded ? cs.primary : cs.onSurfaceVariant,
                     size: 24,
                   ),
                 ),
@@ -84,31 +96,24 @@ class PaperTile extends StatelessWidget {
                   ),
                 ),
 
-                // Bookmark toggle button
-                IconButton(
-                  onPressed: isFileAvailable ? onBookmarkToggle : null,
-                  icon: Icon(
-                    isBookmarked
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_border_rounded,
-                    color: isFileAvailable
-                        ? (isBookmarked ? cs.primary : cs.onSurfaceVariant)
-                        : cs.onSurface.withValues(alpha: 0.3),
-                  ),
-                  tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark',
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
-                ),
+                // Delete icon (downloaded only)
+                if (isDownloaded)
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: Icon(Icons.delete_outline_rounded,
+                        color: cs.error.withValues(alpha: 0.7)),
+                    tooltip: 'Remove download',
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                  )
               ],
             ),
 
             const SizedBox(height: 12),
 
-            // ── Metadata chips ──────────────────────────────────────────
+            // ── Metadata chips ────────────────────────────────────────────
             if (!isFileAvailable)
               _Chip(
                 icon: Icons.cloud_off_rounded,
@@ -116,6 +121,14 @@ class PaperTile extends StatelessWidget {
                 color: cs.error.withValues(alpha: 0.12),
                 iconColor: cs.error,
                 labelColor: cs.error,
+              )
+            else if (isDownloaded)
+              _Chip(
+                icon: Icons.offline_pin_rounded,
+                label: 'Downloaded',
+                color: cs.primaryContainer,
+                iconColor: cs.primary,
+                labelColor: cs.primary,
               )
             else
               Wrap(
@@ -152,44 +165,113 @@ class PaperTile extends StatelessWidget {
 
             const SizedBox(height: 14),
 
-            // ── Action buttons ──────────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onOpen,
-                    icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                    label: const Text('Open PDF'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: onDownload,
-                    icon: const Icon(Icons.download_rounded, size: 16),
-                    label: const Text('Download'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // ── Action area ───────────────────────────────────────────────
+            _buildActions(context, cs),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildActions(BuildContext context, ColorScheme cs) {
+    switch (downloadState.status) {
+      // ── Downloaded: Read + inline delete hint ──────────────────────────
+      case DownloadStatus.downloaded:
+        return SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: onRead,
+            icon: const Icon(Icons.menu_book_rounded, size: 16),
+            label: const Text('Read Offline'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        );
+
+      // ── Downloading: animated progress bar ────────────────────────────
+      case DownloadStatus.downloading:
+        final pct = (downloadState.progress * 100).toStringAsFixed(0);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Downloading…',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: cs.primary,
+                  ),
+                ),
+                Text(
+                  '$pct%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: cs.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: downloadState.progress),
+                duration: const Duration(milliseconds: 200),
+                builder: (_, value, __) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 8,
+                  backgroundColor: cs.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
+                ),
+              ),
+            ),
+          ],
+        );
+
+      // ── Not downloaded: Open Online + Download ─────────────────────────
+      case DownloadStatus.notDownloaded:
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onOpen,
+                icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                label: const Text('Open PDF'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: onDownload,
+                icon: const Icon(Icons.download_rounded, size: 16),
+                label: const Text('Download'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
+        );
+    }
+  }
 }
 
-// ── Internal metadata chip ──────────────────────────────────────────────────
+// ── Internal metadata chip ─────────────────────────────────────────────────────
+
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;

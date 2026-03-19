@@ -8,9 +8,8 @@ import '../../features/years/screens/year_list_screen.dart';
 import '../../features/categories/screens/category_screen.dart';
 import '../../features/papers/screens/papers_screen.dart';
 import '../../features/viewer/screens/pdf_viewer_screen.dart';
-import '../../features/bookmarks/screens/bookmarks_screen.dart';
+import '../../features/downloads/screens/downloads_screen.dart';
 import '../../features/privacy/screens/privacy_policy_screen.dart';
-import '../theme/app_colors.dart';
 
 // Route name constants — use these instead of raw strings.
 class AppRoutes {
@@ -21,7 +20,7 @@ class AppRoutes {
   static const String categories = 'categories';
   static const String papers     = 'papers';
   static const String viewer     = 'viewer';
-  static const String bookmarks  = 'bookmarks';
+  static const String downloads  = 'downloads';
   static const String privacy    = 'privacy';
 }
 
@@ -83,16 +82,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/viewer',
         name: AppRoutes.viewer,
         builder: (context, state) => PDFViewerScreen(
-          pdfUrl: state.uri.queryParameters['url'] ?? '',
-          title:  state.uri.queryParameters['title'] ?? 'PDF Viewer',
+          pdfUrl:       state.uri.queryParameters['url'] ?? '',
+          title:        state.uri.queryParameters['title'] ?? 'PDF Viewer',
+          localPath:    state.uri.queryParameters['localPath'],
+          paperId:      state.uri.queryParameters['paperId'],
+          examId:       state.uri.queryParameters['examId'],
+          year:         int.tryParse(state.uri.queryParameters['year'] ?? ''),
+          categoryId:   state.uri.queryParameters['categoryId'],
+          categoryName: state.uri.queryParameters['categoryName'],
         ),
       ),
 
-      // ── Bookmarks ─────────────────────────────────────────────────────
+      // ── Downloads ─────────────────────────────────────────────────────
       GoRoute(
-        path: '/bookmarks',
-        name: AppRoutes.bookmarks,
-        builder: (context, state) => const BookmarksScreen(),
+        path: '/downloads',
+        name: AppRoutes.downloads,
+        builder: (context, state) => const DownloadsScreen(),
       ),
 
       // ── Privacy Policy ────────────────────────────────────────────────
@@ -109,8 +114,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 48, color: AppColors.error),
+            Icon(Icons.error_outline_rounded,
+                size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text('Page not found', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
