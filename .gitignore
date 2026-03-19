@@ -48,3 +48,6 @@ app.*.map.json
 android/key.properties
 android/app/*.jks
 android/app/*.keystore
+
+# Firebase config (contains API keys — do not commit)
+android/app/google-services.json
