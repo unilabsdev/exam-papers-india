@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Generic error state widget with an optional retry action.
 class AppErrorWidget extends StatelessWidget {
@@ -15,6 +14,7 @@ class AppErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -25,13 +25,13 @@ class AppErrorWidget extends StatelessWidget {
             Container(
               width: 72,
               height: 72,
-              decoration: const BoxDecoration(
-                color: AppColors.errorContainer,
+              decoration: BoxDecoration(
+                color: cs.errorContainer,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline_rounded,
-                color: AppColors.error,
+                color: cs.error,
                 size: 36,
               ),
             ),

@@ -1,4 +1,3 @@
-import '../../../core/constants/app_constants.dart';
 import '../../../models/year_model.dart';
 import '../../../services/mock_data_service.dart';
 
@@ -11,7 +10,6 @@ class YearRepository implements IYearRepository {
 
   @override
   Future<List<YearModel>> getYears(String examId) async {
-    await Future.delayed(AppConstants.mockDelay);
     return MockDataService.getYears(examId);
   }
 }

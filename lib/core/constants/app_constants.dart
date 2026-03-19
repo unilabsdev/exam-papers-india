@@ -12,9 +12,6 @@ class AppConstants {
       '.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzdmdqZ25mcnR1ZnJmc3d3b2V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTI0MDcsImV4cCI6MjA4ODk2ODQwN30'
       '.Qdf7kcQng5s6AmtY0of2R7JsmQg4dRPEAnw7Yb1Sya4';
 
-  // ── Mock API simulation ──────────────────────────────────────────────────────
-  static const Duration mockDelay = Duration(milliseconds: 900);
-
   // ── Spacing ──────────────────────────────────────────────────────────────────
   static const double spaceXS  = 4.0;
   static const double spaceSM  = 8.0;

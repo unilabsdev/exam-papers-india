@@ -195,11 +195,11 @@ class FileNameParser {
       final setLabel = p0.toUpperCase();
       final subParts = parts.sublist(1);
       if (subParts.isEmpty) {
-        return ('${examId}_set_${p0}', 'Set $setLabel', 'assignment', 'Set $setLabel');
+        return ('${examId}_set_$p0', 'Set $setLabel', 'assignment', 'Set $setLabel');
       }
       final subjectKey = subParts.join('_').toLowerCase();
       final subjectName = _lookupSubject(subjectKey) ?? _titleCase(subParts.join(' '));
-      final catId = '${examId}_set_${p0}';
+      final catId = '${examId}_set_$p0';
       return (catId, 'Set $setLabel', 'assignment', subjectName);
     }
 
@@ -331,7 +331,7 @@ class FileNameParser {
     // Join all subject parts, strip trailing paper number
     final lastPart = subParts.last;
     final paperNum = _extractNumber(lastPart);
-    final subjectParts = (paperNum != null && lastPart == 'p${paperNum}')
+    final subjectParts = (paperNum != null && lastPart == 'p$paperNum')
         ? subParts.sublist(0, subParts.length - 1)
         : subParts;
 

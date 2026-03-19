@@ -1,4 +1,3 @@
-import '../../../core/constants/app_constants.dart';
 import '../../../models/category_model.dart';
 import '../../../services/mock_data_service.dart';
 
@@ -11,7 +10,6 @@ class CategoryRepository implements ICategoryRepository {
 
   @override
   Future<List<CategoryModel>> getCategories(String examId, int year) async {
-    await Future.delayed(AppConstants.mockDelay);
     return MockDataService.getCategories(examId);
   }
 }

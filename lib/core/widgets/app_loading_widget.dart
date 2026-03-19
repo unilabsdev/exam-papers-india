@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Generic full-area loading indicator used across all features.
 class AppLoadingWidget extends StatelessWidget {
@@ -9,15 +8,16 @@ class AppLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 36,
             height: 36,
             child: CircularProgressIndicator(
-              color: AppColors.primary,
+              color: cs.primary,
               strokeWidth: 2.5,
             ),
           ),
@@ -28,7 +28,7 @@ class AppLoadingWidget extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: AppColors.textSecondary),
+                  ?.copyWith(color: cs.onSurfaceVariant),
             ),
           ],
         ],

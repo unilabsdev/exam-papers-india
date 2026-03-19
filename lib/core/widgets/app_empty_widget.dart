@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Generic empty-state widget reused throughout the app.
 class AppEmptyWidget extends StatelessWidget {
@@ -17,6 +16,7 @@ class AppEmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -27,11 +27,11 @@ class AppEmptyWidget extends StatelessWidget {
             Container(
               width: 80,
               height: 80,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryContainer,
+              decoration: BoxDecoration(
+                color: cs.primaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: AppColors.primary, size: 40),
+              child: Icon(icon, color: cs.primary, size: 40),
             ),
 
             const SizedBox(height: 20),

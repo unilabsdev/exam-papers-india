@@ -1,4 +1,3 @@
-import '../../../core/constants/app_constants.dart';
 import '../../../models/paper_model.dart';
 import '../../../services/mock_data_service.dart';
 
@@ -39,7 +38,6 @@ class PaperRepository implements IPaperRepository {
 
   @override
   Future<List<PaperModel>> getPapers(PaperParams params) async {
-    await Future.delayed(AppConstants.mockDelay);
     return MockDataService.getPapers(
       examId:     params.examId,
       year:       params.year,

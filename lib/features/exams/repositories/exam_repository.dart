@@ -1,4 +1,3 @@
-import '../../../core/constants/app_constants.dart';
 import '../../../models/exam_model.dart';
 import '../../../services/mock_data_service.dart';
 
@@ -13,7 +12,6 @@ class ExamRepository implements IExamRepository {
 
   @override
   Future<List<ExamModel>> getExams() async {
-    await Future.delayed(AppConstants.mockDelay);
     return MockDataService.exams;
   }
 }
