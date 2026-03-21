@@ -235,6 +235,40 @@ class PaperTile extends StatelessWidget {
           ],
         );
 
+      // ── Failed: show retry option ──────────────────────────────────────
+      case DownloadStatus.failed:
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onOpen,
+                icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                label: const Text('Open PDF'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: onDownload,
+                icon: const Icon(Icons.refresh_rounded, size: 16),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
+        );
+
       // ── Not downloaded: Open Online + Download ─────────────────────────
       case DownloadStatus.notDownloaded:
         return Row(
