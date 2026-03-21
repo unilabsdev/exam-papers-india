@@ -8,7 +8,6 @@ import '../../../core/providers/theme_provider.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../../core/widgets/app_empty_widget.dart';
-import '../../../core/widgets/app_error_widget.dart';
 import '../../../core/widgets/app_loading_widget.dart';
 import '../../../core/providers/realtime_provider.dart';
 import '../providers/exam_provider.dart';
@@ -141,9 +140,9 @@ class ExamListScreen extends ConsumerWidget {
                 child: AppLoadingWidget(message: 'Loading exams…'),
               ),
               error: (err, _) => SliverFillRemaining(
-                child: AppErrorWidget(
-                  message: err.toString(),
+                child: _OfflineErrorWidget(
                   onRetry: () => ref.invalidate(examsProvider),
+                  onGoToDownloads: () => context.push('/downloads'),
                 ),
               ),
               data: (exams) {
@@ -184,6 +183,75 @@ class ExamListScreen extends ConsumerWidget {
                   ),
                 );
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OfflineErrorWidget extends StatelessWidget {
+  final VoidCallback onRetry;
+  final VoidCallback onGoToDownloads;
+
+  const _OfflineErrorWidget({
+    required this.onRetry,
+    required this.onGoToDownloads,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 64, color: cs.onSurfaceVariant),
+            const SizedBox(height: 20),
+            Text(
+              'No Internet Connection',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Connect to the internet to browse exams.\nYou can still read your downloaded papers offline.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onGoToDownloads,
+                icon: const Icon(Icons.download_done_rounded, size: 18),
+                label: const Text('Go to Downloads'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Retry'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
             ),
           ],
         ),

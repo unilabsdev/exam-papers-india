@@ -22,7 +22,8 @@ class SupabaseExamRepository implements IExamRepository {
     final rows = await _client
         .from(_table)
         .select()
-        .order('name', ascending: true);
+        .order('name', ascending: true)
+        .timeout(const Duration(seconds: 5));
 
     final examRows = rows as List<dynamic>;
     if (examRows.isEmpty) return [];
@@ -32,7 +33,8 @@ class SupabaseExamRepository implements IExamRepository {
         .from('papers')
         .select('exam_id')
         .not('category_id', 'ilike', '%notification%')
-        .not('pdf_url', 'is', null);
+        .not('pdf_url', 'is', null)
+        .timeout(const Duration(seconds: 5));
     final countMap = <String, int>{};
     for (final row in paperRows as List<dynamic>) {
       final id = (row as Map<String, dynamic>)['exam_id'] as String;

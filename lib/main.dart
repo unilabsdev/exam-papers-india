@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -36,10 +37,18 @@ Future<void> main() async {
   await AdService.initialize();
 
   // ── Supabase ──────────────────────────────────────────────────────────────
-  await Supabase.initialize(
-    url:     AppConstants.supabaseUrl,
-    anonKey: AppConstants.supabaseAnonKey,
-  );
+  // Timeout prevents hanging forever when the device is offline.
+  // The app will still launch; network features will show error states.
+  try {
+    await Supabase.initialize(
+      url:     AppConstants.supabaseUrl,
+      anonKey: AppConstants.supabaseAnonKey,
+    ).timeout(const Duration(seconds: 5));
+  } on TimeoutException catch (_) {
+    // Offline at startup — app will start normally; downloads still work
+  } catch (_) {
+    // Any other init error — still start the app
+  }
 
   // ── System UI ─────────────────────────────────────────────────────────────
   await SystemChrome.setPreferredOrientations([
