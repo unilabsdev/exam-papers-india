@@ -77,7 +77,7 @@ class AppDrawer extends ConsumerWidget {
               onTap: () {
                 Navigator.of(context).pop();
                 launchUrl(
-                  Uri.parse('https://amit-github-new.github.io/exam-papers-privacy-policy/'),
+                  Uri.parse('https://unilabsdev.github.io/exam-papers-privacy-policy/'),
                   mode: LaunchMode.externalApplication,
                 );
               },
