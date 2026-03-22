@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/navigation/app_router.dart';
 import '../../../core/widgets/app_empty_widget.dart';
-import '../../../core/widgets/app_error_widget.dart';
+import '../../../core/widgets/app_error_widget.dart' show AppErrorWidget, friendlyError;
 import '../../../core/widgets/app_loading_widget.dart';
 import '../../../core/services/ad_service.dart';
 import '../../../core/services/review_service.dart';
@@ -92,7 +92,7 @@ class _PapersScreenState extends ConsumerState<PapersScreen> {
       body: papersAsync.when(
         loading: () => const AppLoadingWidget(message: 'Loading papers…'),
         error: (err, _) => AppErrorWidget(
-          message: err.toString(),
+          message: friendlyError(err),
           onRetry: () => ref.invalidate(papersProvider(params)),
         ),
         data: (papers) {

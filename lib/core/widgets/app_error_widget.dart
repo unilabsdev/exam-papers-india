@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 
+/// Returns a user-friendly error message for any exception.
+String friendlyError(Object err) {
+  final raw = err.toString().toLowerCase();
+  if (raw.contains('socket') ||
+      raw.contains('host lookup') ||
+      raw.contains('network') ||
+      raw.contains('connection') ||
+      raw.contains('timeout') ||
+      raw.contains('clientexception')) {
+    return 'No internet connection. Please check your network and try again.';
+  }
+  return 'Something went wrong. Please try again.';
+}
+
 /// Generic error state widget with an optional retry action.
 class AppErrorWidget extends StatelessWidget {
   final String message;

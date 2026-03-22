@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_empty_widget.dart';
-import '../../../core/widgets/app_error_widget.dart';
+import '../../../core/widgets/app_error_widget.dart' show AppErrorWidget, friendlyError;
 import '../../../core/widgets/app_loading_widget.dart';
 import '../providers/year_provider.dart';
 import '../widgets/year_tile.dart';
@@ -35,7 +35,7 @@ class YearListScreen extends ConsumerWidget {
       body: yearsAsync.when(
         loading: () => const AppLoadingWidget(message: 'Loading years…'),
         error: (err, _) => AppErrorWidget(
-          message: err.toString(),
+          message: friendlyError(err),
           onRetry: () => ref.invalidate(yearsProvider(examId)),
         ),
         data: (years) {

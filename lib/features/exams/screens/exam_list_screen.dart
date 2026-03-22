@@ -6,7 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/navigation/app_router.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/offline_banner.dart';
+import '../../../core/providers/connectivity_provider.dart';
 import '../../../core/widgets/app_empty_widget.dart';
 import '../../../core/widgets/app_loading_widget.dart';
 import '../../../core/providers/realtime_provider.dart';
@@ -25,11 +25,23 @@ class ExamListScreen extends ConsumerWidget {
       ref.invalidate(examsProvider);
     });
 
+    ref.listen(isOfflineProvider, (prev, isOffline) {
+      if (isOffline && prev == false) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You\'re offline — some content may not load'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return OfflineBanner(
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         drawer: const AppDrawer(),
         body: CustomScrollView(
@@ -186,7 +198,6 @@ class ExamListScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
