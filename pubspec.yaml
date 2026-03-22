@@ -1,7 +1,7 @@
 name: exam_papers_app
 description: A production-ready competitive exam previous year papers app.
 publish_to: 'none'
-version: 1.0.3+5
+version: 1.0.4+6
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -72,8 +72,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/app_logo.png"
   min_sdk_android: 21
   adaptive_icon_background: "#1D4ED8"
-  adaptive_icon_foreground: "assets/images/app_icon.png"
+  adaptive_icon_foreground: "assets/images/app_logo.png"
 
