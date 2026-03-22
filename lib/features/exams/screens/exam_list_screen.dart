@@ -139,7 +139,7 @@ class ExamListScreen extends ConsumerWidget {
                           ),
                         ),
                       );
-                    }).value ??
+                    }).asData?.value ??
                         const SizedBox.shrink(),
                   ],
                 ),
