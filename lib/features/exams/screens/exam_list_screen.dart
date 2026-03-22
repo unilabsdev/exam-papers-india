@@ -10,6 +10,7 @@ import '../../../core/providers/connectivity_provider.dart';
 import '../../../core/widgets/app_empty_widget.dart';
 import '../../../core/widgets/app_loading_widget.dart';
 import '../../../core/providers/realtime_provider.dart';
+import '../../../core/services/cache_service.dart';
 import '../providers/exam_provider.dart';
 import '../widgets/exam_card.dart';
 
@@ -164,10 +165,14 @@ class ExamListScreen extends ConsumerWidget {
                 child: AppLoadingWidget(message: 'Loading exams…'),
               ),
               error: (err, _) => SliverFillRemaining(
-                child: _OfflineErrorWidget(
-                  onRetry: () => ref.invalidate(examsProvider),
-                  onGoToDownloads: () => context.push('/downloads'),
-                ),
+                child: err is NoCacheException
+                    ? _NoCacheWidget(
+                        onGoToDownloads: () => context.push('/downloads'),
+                      )
+                    : _OfflineErrorWidget(
+                        onRetry: () => ref.invalidate(examsProvider),
+                        onGoToDownloads: () => context.push('/downloads'),
+                      ),
               ),
               data: (exams) {
                 if (exams.isEmpty) {
@@ -270,6 +275,57 @@ class _OfflineErrorWidget extends StatelessWidget {
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('Retry'),
                 style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NoCacheWidget extends StatelessWidget {
+  final VoidCallback onGoToDownloads;
+
+  const _NoCacheWidget({required this.onGoToDownloads});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 64, color: cs.onSurfaceVariant),
+            const SizedBox(height: 20),
+            Text(
+              'No Saved Data Yet',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Open the app once with internet to enable offline access.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onGoToDownloads,
+                icon: const Icon(Icons.download_done_rounded, size: 18),
+                label: const Text('Go to Downloads'),
+                style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
