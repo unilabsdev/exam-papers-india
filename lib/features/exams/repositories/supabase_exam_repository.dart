@@ -21,7 +21,7 @@ class SupabaseExamRepository implements IExamRepository {
 
     // Online + fresh cache → return cache, refresh in background
     if (fresh && cached != null) {
-      unawaited(_fetchAndSave());
+      _fetchAndSave().ignore();
       return _fromCacheRows(cached);
     }
 

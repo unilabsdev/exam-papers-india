@@ -19,7 +19,7 @@ class SupabaseYearRepository implements IYearRepository {
     final cached = await CacheService.loadYears(examId);
 
     if (fresh && cached != null) {
-      unawaited(_fetchAndSave(examId));
+      _fetchAndSave(examId).ignore();
       return cached.map(YearModel.fromJson).toList();
     }
 

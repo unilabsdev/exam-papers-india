@@ -20,7 +20,7 @@ class SupabaseCategoryRepository implements ICategoryRepository {
     final cached = await CacheService.loadCategories(examId, year);
 
     if (fresh && cached != null) {
-      unawaited(_fetchAndSave(examId, year));
+      _fetchAndSave(examId, year).ignore();
       return _fromCacheRows(cached);
     }
 

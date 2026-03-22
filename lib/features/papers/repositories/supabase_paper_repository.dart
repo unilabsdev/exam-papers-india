@@ -22,7 +22,7 @@ class SupabasePaperRepository implements IPaperRepository {
     );
 
     if (fresh && cached != null) {
-      unawaited(_fetchAndSave(params));
+      _fetchAndSave(params).ignore();
       return cached.map(PaperModel.fromJson).toList();
     }
 
