@@ -42,23 +42,18 @@ Future<void> main() async {
     ),
   );
 
+  // ── Supabase (must complete before runApp — local config, no network) ──────
+  await Supabase.initialize(
+    url:     AppConstants.supabaseUrl,
+    anonKey: AppConstants.supabaseAnonKey,
+  );
+
   // ── Start the app immediately ─────────────────────────────────────────────
   runApp(const ProviderScope(child: ExamPapersApp()));
 
   // ── Non-critical SDKs — initialized in background after first frame ───────
-  // The app is already visible. These will complete when ready (online or off).
-  unawaited(
-    FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true),
-  );
-  unawaited(
-    AdService.initialize(),
-  );
-  unawaited(
-    Supabase.initialize(
-      url:     AppConstants.supabaseUrl,
-      anonKey: AppConstants.supabaseAnonKey,
-    ).catchError((Object _) => Supabase.instance),
-  );
+  unawaited(FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true));
+  unawaited(AdService.initialize());
 }
 
 class ExamPapersApp extends ConsumerWidget {
