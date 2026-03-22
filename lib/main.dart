@@ -17,25 +17,11 @@ import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'services/supabase_service.dart';
 
-Future<void> main() async {
+// ── Synchronous main — app ALWAYS renders immediately ────────────────────────
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Firebase Core (critical — must complete before runApp so Crashlytics
-  //    can catch errors from the very first frame) ───────────────────────────
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Wire up Crashlytics error handlers immediately after Firebase is ready
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  // ── System UI (local, instant) ────────────────────────────────────────────
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Only truly synchronous, instant calls before runApp.
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -43,25 +29,53 @@ Future<void> main() async {
     ),
   );
 
-  // ── Start the app immediately ─────────────────────────────────────────────
+  // Render the app immediately — nothing can block this.
   runApp(const ProviderScope(child: ExamPapersApp()));
 
-  // ── Non-critical SDKs — initialized in background after first frame ───────
-  unawaited(FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true));
-  unawaited(AdService.initialize());
+  // Initialize all SDKs in the background after the first frame is visible.
+  unawaited(_initSdks());
+}
 
-  // ── Supabase — initialized in background, data providers wait for it ──────
-  // Moving this after runApp() prevents the gray screen on offline startup.
-  // markSupabaseReady() unblocks all data providers once init completes.
+/// All SDK initialization runs here — in the background, after runApp().
+/// Each SDK has an independent timeout so one hanging SDK can't block others.
+Future<void> _initSdks() async {
+  // Screen orientation (visual only, non-critical)
+  unawaited(SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]));
+
+  // Firebase (needed for Crashlytics)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10));
+
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+    unawaited(
+      FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true),
+    );
+  } catch (_) {
+    // Firebase unavailable — app still works, just no crash reporting
+  }
+
+  // AdMob (ads only — fully optional)
+  unawaited(AdService.initialize().catchError((_) {}));
+
+  // Supabase — 5s timeout so offline users see error state quickly
   try {
     await Supabase.initialize(
       url:     AppConstants.supabaseUrl,
       anonKey: AppConstants.supabaseAnonKey,
-    );
+    ).timeout(const Duration(seconds: 5));
   } catch (_) {
-    // Init failed (e.g. some edge case) — unblock providers anyway so
-    // they can show the offline error state instead of loading forever.
+    // Offline or timed out — providers will show the offline error state
   } finally {
+    // Always unblock data providers, online or offline
     markSupabaseReady();
   }
 }
