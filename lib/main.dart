@@ -19,38 +19,18 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Firebase ──────────────────────────────────────────────────────────────
+  // ── Firebase Core (critical — must complete before runApp so Crashlytics
+  //    can catch errors from the very first frame) ───────────────────────────
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Route all Flutter errors to Crashlytics
+  // Wire up Crashlytics error handlers immediately after Firebase is ready
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  // Route async/platform errors to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
-  // Enable Analytics data collection
-  await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-
-  // ── AdMob ─────────────────────────────────────────────────────────────────
-  await AdService.initialize();
-
-  // ── Supabase ──────────────────────────────────────────────────────────────
-  // Timeout prevents hanging forever when the device is offline.
-  // The app will still launch; network features will show error states.
-  try {
-    await Supabase.initialize(
-      url:     AppConstants.supabaseUrl,
-      anonKey: AppConstants.supabaseAnonKey,
-    ).timeout(const Duration(seconds: 5));
-  } on TimeoutException catch (_) {
-    // Offline at startup — app will start normally; downloads still work
-  } catch (_) {
-    // Any other init error — still start the app
-  }
-
-  // ── System UI ─────────────────────────────────────────────────────────────
+  // ── System UI (local, instant) ────────────────────────────────────────────
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -62,10 +42,22 @@ Future<void> main() async {
     ),
   );
 
-  runApp(
-    const ProviderScope(
-      child: ExamPapersApp(),
-    ),
+  // ── Start the app immediately ─────────────────────────────────────────────
+  runApp(const ProviderScope(child: ExamPapersApp()));
+
+  // ── Non-critical SDKs — initialized in background after first frame ───────
+  // The app is already visible. These will complete when ready (online or off).
+  unawaited(
+    FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true),
+  );
+  unawaited(
+    AdService.initialize(),
+  );
+  unawaited(
+    Supabase.initialize(
+      url:     AppConstants.supabaseUrl,
+      anonKey: AppConstants.supabaseAnonKey,
+    ).catchError((Object _) => Supabase.instance),
   );
 }
 
