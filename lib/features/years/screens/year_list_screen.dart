@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/services/cache_service.dart';
 import '../../../core/widgets/app_empty_widget.dart';
 import '../../../core/widgets/app_error_widget.dart' show AppErrorWidget, friendlyError;
 import '../../../core/widgets/app_loading_widget.dart';
+import '../../../core/widgets/app_no_cache_widget.dart';
 import '../providers/year_provider.dart';
 import '../widgets/year_tile.dart';
 
@@ -34,10 +36,12 @@ class YearListScreen extends ConsumerWidget {
       ),
       body: yearsAsync.when(
         loading: () => const AppLoadingWidget(message: 'Loading years…'),
-        error: (err, _) => AppErrorWidget(
-          message: friendlyError(err),
-          onRetry: () => ref.invalidate(yearsProvider(examId)),
-        ),
+        error: (err, _) => err is NoCacheException
+            ? const AppNoCacheWidget(dataLabel: 'years')
+            : AppErrorWidget(
+                message: friendlyError(err),
+                onRetry: () => ref.invalidate(yearsProvider(examId)),
+              ),
         data: (years) {
           if (years.isEmpty) {
             return const AppEmptyWidget(

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/cache_service.dart';
 import '../../../core/widgets/app_empty_widget.dart';
-import '../../../core/widgets/app_error_widget.dart';
+import '../../../core/widgets/app_error_widget.dart' show AppErrorWidget, friendlyError;
 import '../../../core/widgets/app_loading_widget.dart';
+import '../../../core/widgets/app_no_cache_widget.dart';
 import '../providers/category_provider.dart';
 import '../widgets/category_card.dart';
 
@@ -40,12 +42,14 @@ class CategoryScreen extends ConsumerWidget {
       body: categoriesAsync.when(
         loading: () =>
             const AppLoadingWidget(message: 'Loading categories…'),
-        error: (err, _) => AppErrorWidget(
-          message: err.toString(),
-          onRetry: () => ref.invalidate(
-            categoriesProvider(CategoryParams(examId: examId, year: year)),
-          ),
-        ),
+        error: (err, _) => err is NoCacheException
+            ? const AppNoCacheWidget(dataLabel: 'categories')
+            : AppErrorWidget(
+                message: friendlyError(err),
+                onRetry: () => ref.invalidate(
+                  categoriesProvider(CategoryParams(examId: examId, year: year)),
+                ),
+              ),
         data: (categories) {
           if (categories.isEmpty) {
             return const AppEmptyWidget(
