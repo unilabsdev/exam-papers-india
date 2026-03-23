@@ -136,7 +136,7 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
       categoryId:   widget.categoryId ?? '',
       categoryName: widget.categoryName ?? '',
     );
-    ref.read(downloadProvider.notifier).download(paper);
+    ref.read(downloadProvider.notifier).download(paper, examName: widget.examName);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Download started…')),
     );

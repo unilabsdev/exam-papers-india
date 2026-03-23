@@ -252,7 +252,12 @@ class _DownloadTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${record.categoryName} · ${record.year}',
+                        [
+                          if (record.examName != null && record.examName!.isNotEmpty)
+                            record.examName!,
+                          record.categoryName,
+                          record.year.toString(),
+                        ].join(' · '),
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: cs.onSurfaceVariant),
                       ),

@@ -156,7 +156,7 @@ class _PapersScreenState extends ConsumerState<PapersScreen> {
                     : null,
 
                 onDownload: hasFile
-                    ? () => downloadNotifier.download(paper)
+                    ? () => downloadNotifier.download(paper, examName: widget.examName)
                     : null,
 
                 onRead: isDownloaded

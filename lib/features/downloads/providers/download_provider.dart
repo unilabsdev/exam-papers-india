@@ -47,6 +47,7 @@ class DownloadedPaperRecord {
   final String id;
   final String title;
   final String examId;
+  final String? examName;
   final int year;
   final String categoryId;
   final String categoryName;
@@ -58,6 +59,7 @@ class DownloadedPaperRecord {
     required this.id,
     required this.title,
     required this.examId,
+    this.examName,
     required this.year,
     required this.categoryId,
     required this.categoryName,
@@ -70,6 +72,7 @@ class DownloadedPaperRecord {
         'id': id,
         'title': title,
         'examId': examId,
+        'examName': examName,
         'year': year,
         'categoryId': categoryId,
         'categoryName': categoryName,
@@ -83,6 +86,7 @@ class DownloadedPaperRecord {
         id: json['id'] as String,
         title: json['title'] as String,
         examId: json['examId'] as String,
+        examName: json['examName'] as String?,
         year: json['year'] as int,
         categoryId: json['categoryId'] as String,
         categoryName: json['categoryName'] as String,
@@ -139,7 +143,7 @@ class DownloadNotifier extends StateNotifier<Map<String, DownloadState>> {
 
   // ── Download ─────────────────────────────────────────────────────────────────
 
-  Future<void> download(PaperModel paper) async {
+  Future<void> download(PaperModel paper, {String? examName}) async {
     final url = paper.pdfUrl;
     if (url == null || url.isEmpty) return;
     if (state[paper.id]?.status == DownloadStatus.downloading) return;
@@ -179,6 +183,7 @@ class DownloadNotifier extends StateNotifier<Map<String, DownloadState>> {
         id: paper.id,
         title: paper.title,
         examId: paper.examId,
+        examName: examName,
         year: paper.year,
         categoryId: paper.categoryId,
         categoryName: paper.categoryName,
