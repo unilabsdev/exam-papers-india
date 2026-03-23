@@ -46,6 +46,9 @@ dependencies:
   # Supabase
   supabase_flutter: ^2.8.4
 
+  # App version info
+  package_info_plus: ^8.0.0
+
   # In-app review
   in_app_review: ^2.0.9
 

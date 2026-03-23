@@ -56,3 +56,18 @@ android {
 flutter {
     source = "../.."
 }
+
+// Auto-rename AAB to include version name and code
+android.applicationVariants.configureEach {
+    if (buildType.name == "release") {
+        val variant = this
+        tasks.named("bundle${variant.name.replaceFirstChar { it.uppercase() }}") {
+            doLast {
+                val outDir = layout.buildDirectory.dir("outputs/bundle/${variant.name}").get().asFile
+                val oldFile = outDir.listFiles()?.firstOrNull { it.name.endsWith(".aab") } ?: return@doLast
+                val newName = "ExamPapersIndia-v${variant.versionName}-vc${variant.versionCode}-release.aab"
+                oldFile.renameTo(File(outDir, newName))
+            }
+        }
+    }
+}
