@@ -1,5 +1,4 @@
-const String _storageBase =
-    'https://hsvgjgnfrtufrfswwoeu.supabase.co/storage/v1/object/public/papers/';
+import '../constants/app_constants.dart';
 
 // ── Parsed file result ─────────────────────────────────────────────────────────
 
@@ -166,7 +165,7 @@ class FileNameParser {
       categoryName:     catName,
       categoryIconName: catIcon,
       title:            title,
-      pdfUrl:           '$_storageBase$filename',
+      pdfUrl:           '${AppConstants.r2BaseUrl}$filename',
     );
   }
 

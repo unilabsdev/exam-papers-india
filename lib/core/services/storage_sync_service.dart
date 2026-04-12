@@ -1,5 +1,9 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../constants/app_constants.dart';
 import '../utils/file_name_parser.dart';
 
 /// Scans the Supabase `papers` storage bucket on startup and auto-populates
@@ -37,31 +41,11 @@ class StorageSyncService {
   // ── Storage listing ──────────────────────────────────────────────────────────
 
   Future<List<String>> _listAllFiles() async {
-    final allFiles = <String>[];
-    const batchSize = 1000;
-    var offset = 0;
-
-    while (true) {
-      final batch = await _client.storage.from('papers').list(
-            path: '',
-            searchOptions: SearchOptions(
-              limit: batchSize,
-              offset: offset,
-            ),
-          );
-
-      final names = batch
-          .where((f) => f.name.endsWith('.pdf'))
-          .map((f) => f.name)
-          .toList();
-
-      allFiles.addAll(names);
-
-      if (batch.length < batchSize) break;
-      offset += batchSize;
-    }
-
-    return allFiles;
+    final uri = Uri.parse('${AppConstants.r2WorkerUrl}/list');
+    final response = await http.get(uri);
+    if (response.statusCode != 200) return [];
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['files'] as List<dynamic>).cast<String>();
   }
 
   // ── Upsert exam_years ────────────────────────────────────────────────────────

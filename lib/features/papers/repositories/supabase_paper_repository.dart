@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/services/cache_service.dart';
 import '../../../models/paper_model.dart';
 import 'paper_repository.dart';
-
-const _storageBase =
-    'https://hsvgjgnfrtufrfswwoeu.supabase.co/storage/v1/object/public/papers/';
 
 class SupabasePaperRepository implements IPaperRepository {
   final SupabaseClient _client;
@@ -55,7 +53,7 @@ class SupabasePaperRepository implements IPaperRepository {
         year:            r['year'] as int,
         categoryId:      r['category_id'] as String,
         categoryName:    r['category_name'] as String? ?? '',
-        pdfUrl:          (r['pdf_url'] as String?) ?? '$_storageBase${r['id']}.pdf',
+        pdfUrl:          (r['pdf_url'] as String?) ?? '${AppConstants.r2BaseUrl}${r['id']}.pdf',
         downloadUrl:     r['download_url'] as String?,
         fileSizeMb:      (r['file_size_mb'] as num?)?.toDouble(),
         language:        r['language'] as String?,
