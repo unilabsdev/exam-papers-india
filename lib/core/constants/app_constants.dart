@@ -18,7 +18,7 @@ class AppConstants {
   //     OR: https://<your-custom-domain>/  (if using a custom domain)
   // TODO: replace with your actual R2 public bucket URL after setup.
   static const String r2BaseUrl =
-      'https://pub-018c69c45ac44467a19a69453134c0149.r2.dev/';
+      'https://pub-010c69c45ac44467a19a6945134c0149.r2.dev/';
 
   // URL of your deployed Cloudflare Worker (used by StorageSyncService to
   // list files in the R2 bucket).

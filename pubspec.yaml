@@ -1,7 +1,7 @@
 name: exam_papers_app
 description: A production-ready competitive exam previous year papers app.
 publish_to: 'none'
-version: 1.0.6+8
+version: 1.0.7+9
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
