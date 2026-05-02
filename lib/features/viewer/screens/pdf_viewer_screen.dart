@@ -57,11 +57,13 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   bool _isLoading        = true;
   bool _hasError         = false;
   bool _isFileUnavailable = false;
+  bool _isOom            = false;
   String _errorMsg       = '';
 
   int _currentPage = 1;
   int _totalPages  = 0;
   bool _isSearchOpen = false;
+  int _retryCount = 0;
 
   @override
   void dispose() {
@@ -73,25 +75,35 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
 
   // ── Event handlers ─────────────────────────────────────────────────────────
 
-  void _onLoaded(PdfDocumentLoadedDetails d) => setState(() {
-        _isLoading  = false;
-        _hasError   = false;
-        _totalPages = d.document.pages.count;
-      });
+  void _onLoaded(PdfDocumentLoadedDetails d) {
+    if (!mounted) return;
+    setState(() {
+      _isLoading  = false;
+      _hasError   = false;
+      _totalPages = d.document.pages.count;
+    });
+  }
 
-  void _onLoadFailed(PdfDocumentLoadFailedDetails d) => setState(() {
-        _isLoading = false;
-        _hasError  = true;
-        _errorMsg  = d.description;
-        // Detect HTTP 400/404 — file not uploaded to storage yet
-        _isFileUnavailable = _errorMsg.contains('400') ||
-            _errorMsg.contains('404') ||
-            _errorMsg.contains('Bad Request') ||
-            _errorMsg.contains('Not Found');
-      });
+  void _onLoadFailed(PdfDocumentLoadFailedDetails d) {
+    if (!mounted) return;
+    final msg = d.description.toLowerCase();
+    setState(() {
+      _isLoading = false;
+      _hasError  = true;
+      _errorMsg  = d.description;
+      _isOom     = msg.contains('out of memory') || msg.contains('outofmemory');
+      _isFileUnavailable = !_isOom && (
+          msg.contains('400') || msg.contains('401') ||
+          msg.contains('403') || msg.contains('404') ||
+          msg.contains('bad request') || msg.contains('not found') ||
+          msg.contains('unauthorized'));
+    });
+  }
 
-  void _onPageChanged(PdfPageChangedDetails d) =>
-      setState(() => _currentPage = d.newPageNumber);
+  void _onPageChanged(PdfPageChangedDetails d) {
+    if (!mounted) return;
+    setState(() => _currentPage = d.newPageNumber);
+  }
 
   void _toggleSearch() {
     setState(() => _isSearchOpen = !_isSearchOpen);
@@ -109,6 +121,8 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
   void _retry() => setState(() {
         _isLoading = true;
         _hasError  = false;
+        _isOom     = false;
+        _retryCount++;
       });
 
   void _share() {
@@ -243,10 +257,11 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
               padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
               child: SfPdfViewer.file(
                 File(localPath),
+                key: ValueKey('file_${localPath}_$_retryCount'),
                 controller: _controller,
                 enableDoubleTapZooming: true,
                 enableTextSelection: true,
-                pageLayoutMode: PdfPageLayoutMode.continuous,
+                pageLayoutMode: PdfPageLayoutMode.single,
                 scrollDirection: PdfScrollDirection.vertical,
                 onDocumentLoaded: _onLoaded,
                 onDocumentLoadFailed: _onLoadFailed,
@@ -281,10 +296,11 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
             padding: EdgeInsets.only(top: _isSearchOpen ? 56 : 0),
             child: SfPdfViewer.network(
               widget.pdfUrl,
+              key: ValueKey('${widget.pdfUrl}_$_retryCount'),
               controller: _controller,
               enableDoubleTapZooming: true,
               enableTextSelection: true,
-              pageLayoutMode: PdfPageLayoutMode.continuous,
+              pageLayoutMode: PdfPageLayoutMode.single,
               scrollDirection: PdfScrollDirection.vertical,
               onDocumentLoaded: _onLoaded,
               onDocumentLoadFailed: _onLoadFailed,
@@ -313,9 +329,11 @@ class _PDFViewerScreenState extends ConsumerState<PDFViewerScreen> {
 
         // Error view
         if (_hasError)
-          _isFileUnavailable
-              ? _FileUnavailableView(onBack: () => Navigator.of(context).pop())
-              : _ErrorView(message: _errorMsg, onRetry: _retry),
+          _isOom
+              ? _OomView(onBack: () => Navigator.of(context).pop())
+              : _isFileUnavailable
+                  ? _FileUnavailableView(onBack: () => Navigator.of(context).pop())
+                  : _ErrorView(message: _errorMsg, onRetry: _retry),
       ],
     );
   }
@@ -514,6 +532,45 @@ class _FileUnavailableView extends StatelessWidget {
               const SizedBox(height: 10),
               const Text(
                 'This paper has not been uploaded yet.\nPlease check back later.',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              ElevatedButton.icon(
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                label: const Text('Go Back'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A3A3C),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _OomView extends StatelessWidget {
+  final VoidCallback onBack;
+  const _OomView({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.memory_rounded, size: 64, color: Colors.white30),
+              const SizedBox(height: 20),
+              const Text(
+                'PDF Too Large to Open',
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This file is too large to open on your device.\nTry downloading it instead.',
                 style: TextStyle(color: Colors.white54, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
